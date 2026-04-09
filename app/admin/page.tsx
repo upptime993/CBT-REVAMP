@@ -64,7 +64,13 @@ function SiswaModal({
         jenisKelamin: editData.jenisKelamin || "L",
       });
     } else {
-      setForm({ nama: "", nisn: "", kelasId: "", kelas: "", jenisKelamin: "L" });
+      setForm({
+        nama: "",
+        nisn: "",
+        kelasId: "",
+        kelas: "",
+        jenisKelamin: "L",
+      });
     }
   }, [editData, open]);
 
@@ -75,16 +81,30 @@ function SiswaModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama.trim()) { toast.error("Nama wajib diisi"); return; }
-    if (!/^\d{10}$/.test(form.nisn)) { toast.error("NISN harus 10 digit angka"); return; }
-    if (!form.kelasId) { toast.error("Kelas wajib dipilih"); return; }
+    if (!form.nama.trim()) {
+      toast.error("Nama wajib diisi");
+      return;
+    }
+    if (!/^\d{10}$/.test(form.nisn)) {
+      toast.error("NISN harus 10 digit angka");
+      return;
+    }
+    if (!form.kelasId) {
+      toast.error("Kelas wajib dipilih");
+      return;
+    }
 
     const selectedKelas = kelasList.find((k) => k._id === form.kelasId);
     setLoading(true);
     try {
       const method = editData ? "PUT" : "POST";
       const body = editData
-        ? { tipe: "siswa", id: editData._id, ...form, kelas: selectedKelas?.nama }
+        ? {
+            tipe: "siswa",
+            id: editData._id,
+            ...form,
+            kelas: selectedKelas?.nama,
+          }
         : { tipe: "siswa", ...form, kelas: selectedKelas?.nama };
 
       const res = await fetch("/api/manajemen", {
@@ -97,7 +117,9 @@ function SiswaModal({
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(editData ? "Data siswa diperbarui!" : "Siswa berhasil ditambahkan!");
+        toast.success(
+          editData ? "Data siswa diperbarui!" : "Siswa berhasil ditambahkan!"
+        );
         onSuccess();
         onClose();
       } else {
@@ -169,10 +191,20 @@ function SiswaModal({
           </div>
         </div>
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" fullWidth onClick={onClose} type="button">
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={onClose}
+            type="button"
+          >
             Batal
           </Button>
-          <Button variant="primary" fullWidth loading={loading} type="submit">
+          <Button
+            variant="primary"
+            fullWidth
+            loading={loading}
+            type="submit"
+          >
             {editData ? "Simpan Perubahan" : "Tambah Siswa"}
           </Button>
         </div>
@@ -181,7 +213,7 @@ function SiswaModal({
   );
 }
 
-// ── Tambah Guru Modal ──
+// ── Tambah/Edit Guru Modal ──
 function GuruModal({
   open,
   onClose,
@@ -213,14 +245,27 @@ function GuruModal({
         role: editData.role || "guru",
       });
     } else {
-      setForm({ nama: "", username: "", password: "", mapel: "", role: "guru" });
+      setForm({
+        nama: "",
+        username: "",
+        password: "",
+        mapel: "",
+        role: "guru",
+      });
     }
   }, [editData, open]);
 
   const MAPEL_OPTIONS = [
-    "Matematika", "Bahasa Indonesia", "Bahasa Inggris",
-    "IPA Biologi", "IPA Fisika", "IPA Kimia",
-    "IPS", "PKn", "Agama", "Lainnya",
+    "Matematika",
+    "Bahasa Indonesia",
+    "Bahasa Inggris",
+    "IPA Biologi",
+    "IPA Fisika",
+    "IPA Kimia",
+    "IPS",
+    "PKn",
+    "Agama",
+    "Lainnya",
   ].map((m) => ({ value: m, label: m }));
 
   const ROLE_OPTIONS = [
@@ -230,11 +275,21 @@ function GuruModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama.trim()) { toast.error("Nama wajib diisi"); return; }
-    if (!form.username.trim()) { toast.error("Username wajib diisi"); return; }
-    if (!editData && !form.password) { toast.error("Password wajib diisi"); return; }
+    if (!form.nama.trim()) {
+      toast.error("Nama wajib diisi");
+      return;
+    }
+    if (!form.username.trim()) {
+      toast.error("Username wajib diisi");
+      return;
+    }
+    if (!editData && !form.password) {
+      toast.error("Password wajib diisi");
+      return;
+    }
     if (form.password && form.password.length < 6) {
-      toast.error("Password minimal 6 karakter"); return;
+      toast.error("Password minimal 6 karakter");
+      return;
     }
 
     setLoading(true);
@@ -254,7 +309,9 @@ function GuruModal({
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(editData ? "Data guru diperbarui!" : "Akun guru berhasil dibuat!");
+        toast.success(
+          editData ? "Data guru diperbarui!" : "Akun guru berhasil dibuat!"
+        );
         onSuccess();
         onClose();
       } else {
@@ -292,7 +349,11 @@ function GuruModal({
           required
         />
         <Input
-          label={editData ? "Password Baru (kosongkan jika tidak diubah)" : "Password"}
+          label={
+            editData
+              ? "Password Baru (kosongkan jika tidak diubah)"
+              : "Password"
+          }
           type="password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -313,10 +374,20 @@ function GuruModal({
           onChange={(v) => setForm({ ...form, role: v })}
         />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" fullWidth onClick={onClose} type="button">
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={onClose}
+            type="button"
+          >
             Batal
           </Button>
-          <Button variant="primary" fullWidth loading={loading} type="submit">
+          <Button
+            variant="primary"
+            fullWidth
+            loading={loading}
+            type="submit"
+          >
             {editData ? "Simpan" : "Buat Akun"}
           </Button>
         </div>
@@ -346,7 +417,10 @@ function KelasModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama.trim()) { toast.error("Nama kelas wajib diisi"); return; }
+    if (!form.nama.trim()) {
+      toast.error("Nama kelas wajib diisi");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/manajemen", {
@@ -362,7 +436,12 @@ function KelasModal({
         toast.success("Kelas berhasil dibuat!");
         onSuccess();
         onClose();
-        setForm({ nama: "", tingkat: "X", tahunAjaran: "2024/2025", waliKelas: "" });
+        setForm({
+          nama: "",
+          tingkat: "X",
+          tahunAjaran: "2024/2025",
+          waliKelas: "",
+        });
       } else {
         toast.error(data.message);
       }
@@ -385,8 +464,9 @@ function KelasModal({
         />
         <Select
           label="Tingkat"
-          options={["VII","VIII","IX","X","XI","XII"].map((t) => ({
-            value: t, label: `Kelas ${t}`,
+          options={["VII", "VIII", "IX", "X", "XI", "XII"].map((t) => ({
+            value: t,
+            label: `Kelas ${t}`,
           }))}
           value={form.tingkat}
           onChange={(v) => setForm({ ...form, tingkat: v })}
@@ -405,10 +485,20 @@ function KelasModal({
           placeholder="Nama wali kelas"
         />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" fullWidth onClick={onClose} type="button">
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={onClose}
+            type="button"
+          >
             Batal
           </Button>
-          <Button variant="primary" fullWidth loading={loading} type="submit">
+          <Button
+            variant="primary"
+            fullWidth
+            loading={loading}
+            type="submit"
+          >
             Tambah Kelas
           </Button>
         </div>
@@ -441,7 +531,11 @@ export default function AdminPage() {
   const [kelasList, setKelasList] = useState<any[]>([]);
 
   const tabs = [
-    { id: "siswa", label: "Siswa", icon: <GraduationCap className="w-4 h-4" /> },
+    {
+      id: "siswa",
+      label: "Siswa",
+      icon: <GraduationCap className="w-4 h-4" />,
+    },
     { id: "guru", label: "Guru", icon: <Users className="w-4 h-4" /> },
     { id: "kelas", label: "Kelas", icon: <School className="w-4 h-4" /> },
   ];
@@ -476,8 +570,8 @@ export default function AdminPage() {
       const res = await fetch("/api/manajemen?tipe=kelas&limit=100", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      setKelasList(data.data?.list || []);
+      const result = await res.json();
+      setKelasList(result.data?.list || []);
     } catch {}
   }, [token]);
 
@@ -504,12 +598,12 @@ export default function AdminPage() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      const data = await res.json();
-      if (data.success) {
+      const result = await res.json();
+      if (result.success) {
         toast.success("Data berhasil dihapus");
         fetchData();
       } else {
-        toast.error(data.message);
+        toast.error(result.message);
       }
     } catch {
       toast.error("Gagal menghapus data");
@@ -519,79 +613,156 @@ export default function AdminPage() {
     }
   };
 
+  // ── Column Definitions ──
   const siswaColumns = [
-    { key: "no", header: "No", width: "50px", render: (_: any, i: number) => (page - 1) * 15 + i + 1 },
-    { key: "nama", header: "Nama", render: (row: any) => (
-      <div>
-        <p className="font-medium text-white">{row.nama}</p>
-        <p className="text-xs text-[#6B7280]">{row.nisn}</p>
-      </div>
-    )},
-    { key: "kelas", header: "Kelas" },
-    { key: "jenisKelamin", header: "JK", render: (row: any) => (
-      <Badge variant={row.jenisKelamin === "L" ? "info" : "purple"}>
-        {row.jenisKelamin === "L" ? "L" : "P"}
-      </Badge>
-    )},
-    { key: "aksi", header: "Aksi", align: "right" as const, render: (row: any) => (
-      <div className="flex items-center justify-end gap-1">
-        <button onClick={() => { setEditData(row); setShowSiswaModal(true); }}
-          className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors">
-          <Edit className="w-4 h-4" />
-        </button>
-        <button onClick={() => setDeleteId(row._id)}
-          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors">
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    )},
+    {
+      key: "no",
+      header: "No",
+      width: "50px",
+      // Fix 2: render menerima (row, index) => ReactNode
+      render: (_: any, i: number) => (
+        <span>{(page - 1) * 15 + i + 1}</span>
+      ),
+    },
+    {
+      key: "nama",
+      header: "Nama",
+      render: (row: any) => (
+        <div>
+          <p className="font-medium text-white">{row.nama}</p>
+          <p className="text-xs text-[#6B7280]">{row.nisn}</p>
+        </div>
+      ),
+    },
+    {
+      key: "kelas",
+      header: "Kelas",
+    },
+    {
+      key: "jenisKelamin",
+      header: "JK",
+      render: (row: any) => (
+        <Badge variant={row.jenisKelamin === "L" ? "info" : "purple"}>
+          {row.jenisKelamin === "L" ? "L" : "P"}
+        </Badge>
+      ),
+    },
+    {
+      key: "aksi",
+      header: "Aksi",
+      align: "right" as const,
+      render: (row: any) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => {
+              setEditData(row);
+              setShowSiswaModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setDeleteId(row._id)}
+            className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   const guruColumns = [
-    { key: "nama", header: "Nama", render: (row: any) => (
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 gradient-purple rounded-full flex items-center justify-center text-xs font-bold">
-          {row.nama?.charAt(0)}
+    {
+      key: "nama",
+      header: "Nama",
+      render: (row: any) => (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 gradient-purple rounded-full flex items-center justify-center text-xs font-bold">
+            {row.nama?.charAt(0)}
+          </div>
+          <div>
+            <p className="font-medium text-white">{row.nama}</p>
+            <p className="text-xs text-[#6B7280]">@{row.username}</p>
+          </div>
         </div>
-        <div>
-          <p className="font-medium text-white">{row.nama}</p>
-          <p className="text-xs text-[#6B7280]">@{row.username}</p>
+      ),
+    },
+    {
+      key: "mapel",
+      header: "Mapel",
+      render: (row: any) => row.mapel || "-",
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (row: any) => (
+        <Badge variant={row.role === "admin" ? "purple" : "default"}>
+          {row.role}
+        </Badge>
+      ),
+    },
+    {
+      key: "aksi",
+      header: "Aksi",
+      align: "right" as const,
+      render: (row: any) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => {
+              setEditData(row);
+              setShowGuruModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setDeleteId(row._id)}
+            className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
-      </div>
-    )},
-    { key: "mapel", header: "Mapel", render: (row: any) => row.mapel || "-" },
-    { key: "role", header: "Role", render: (row: any) => (
-      <Badge variant={row.role === "admin" ? "purple" : "default"}>
-        {row.role}
-      </Badge>
-    )},
-    { key: "aksi", header: "Aksi", align: "right" as const, render: (row: any) => (
-      <div className="flex items-center justify-end gap-1">
-        <button onClick={() => { setEditData(row); setShowGuruModal(true); }}
-          className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors">
-          <Edit className="w-4 h-4" />
-        </button>
-        <button onClick={() => setDeleteId(row._id)}
-          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors">
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    )},
+      ),
+    },
   ];
 
   const kelasColumns = [
-    { key: "nama", header: "Nama Kelas", render: (row: any) => (
-      <p className="font-medium text-white">{row.nama}</p>
-    )},
-    { key: "tingkat", header: "Tingkat" },
-    { key: "tahunAjaran", header: "Tahun Ajaran" },
-    { key: "waliKelas", header: "Wali Kelas", render: (row: any) => row.waliKelas || "-" },
-    { key: "aksi", header: "Aksi", align: "right" as const, render: (row: any) => (
-      <button onClick={() => setDeleteId(row._id)}
-        className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors">
-        <Trash2 className="w-4 h-4" />
-      </button>
-    )},
+    {
+      key: "nama",
+      header: "Nama Kelas",
+      render: (row: any) => (
+        <p className="font-medium text-white">{row.nama}</p>
+      ),
+    },
+    {
+      key: "tingkat",
+      header: "Tingkat",
+    },
+    {
+      key: "tahunAjaran",
+      header: "Tahun Ajaran",
+    },
+    {
+      key: "waliKelas",
+      header: "Wali Kelas",
+      render: (row: any) => row.waliKelas || "-",
+    },
+    {
+      key: "aksi",
+      header: "Aksi",
+      align: "right" as const,
+      render: (row: any) => (
+        <button
+          onClick={() => setDeleteId(row._id)}
+          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      ),
+    },
   ];
 
   return (
@@ -610,23 +781,35 @@ export default function AdminPage() {
           }}
           icon={<Plus className="w-4 h-4" />}
         >
-          Tambah {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+          Tambah{" "}
+          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
         </Button>
       }
     >
       <div className="space-y-5">
-        <Tabs tabs={tabs} active={activeTab} onChange={(id) => { setActiveTab(id); setSearch(""); }} />
+        {/* Tabs */}
+        <Tabs
+          tabs={tabs}
+          active={activeTab}
+          onChange={(id) => {
+            setActiveTab(id);
+            setSearch("");
+          }}
+        />
 
+        {/* Search */}
         <SearchBar
           value={search}
           onChange={setSearch}
           placeholder={`Cari ${activeTab}...`}
         />
 
+        {/* Info jumlah data */}
         <div className="text-xs text-[#6B7280]">
           Menampilkan {data.length} dari {total} data
         </div>
 
+        {/* Table */}
         <Table
           columns={
             activeTab === "siswa"
@@ -641,28 +824,45 @@ export default function AdminPage() {
           emptyText={`Belum ada ${activeTab} terdaftar`}
         />
 
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        {/* Pagination */}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onChange={setPage}
+        />
       </div>
 
-      {/* Modals */}
+      {/* ── Modals ── */}
       <SiswaModal
         open={showSiswaModal}
-        onClose={() => { setShowSiswaModal(false); setEditData(null); }}
+        onClose={() => {
+          setShowSiswaModal(false);
+          setEditData(null);
+        }}
         onSuccess={fetchData}
         editData={editData}
         kelasList={kelasList}
       />
+
       <GuruModal
         open={showGuruModal}
-        onClose={() => { setShowGuruModal(false); setEditData(null); }}
+        onClose={() => {
+          setShowGuruModal(false);
+          setEditData(null);
+        }}
         onSuccess={fetchData}
         editData={editData}
       />
+
       <KelasModal
         open={showKelasModal}
         onClose={() => setShowKelasModal(false)}
-        onSuccess={() => { fetchData(); fetchKelas(); }}
+        onSuccess={() => {
+          fetchData();
+          fetchKelas();
+        }}
       />
+
       <ConfirmModal
         open={!!deleteId}
         onClose={() => setDeleteId(null)}
