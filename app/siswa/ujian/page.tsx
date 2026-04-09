@@ -1,16 +1,30 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Key, AlertTriangle, Clock, BookOpen, ArrowRight } from "lucide-react";
 import { SiswaLayout } from "@/components/layout";
-import { Button, Input, Alert, Badge, Modal } from "@/components/ui";
+import { Button, Alert, Badge, Modal } from "@/components/ui";
 import { UjianAvailableCard } from "@/components/dashboard-components";
 import { useAuthStore, useExamStore } from "@/store";
 import toast from "react-hot-toast";
 
-export default function SiswaUjianPage() {
+// ── Loading Fallback ──
+function SiswaUjianLoading() {
+  return (
+    <SiswaLayout title="Ujian Tersedia" showBack>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="skeleton h-36 rounded-2xl" />
+        ))}
+      </div>
+    </SiswaLayout>
+  );
+}
+
+// ── Komponen utama yang pakai useSearchParams ──
+function SiswaUjianContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, token } = useAuthStore();
@@ -46,13 +60,9 @@ export default function SiswaUjianPage() {
 
   useEffect(() => {
     fetchUjian();
-    // Jika ada id dari param, auto-select
-    const id = searchParams.get("id");
-    if (id) {
-      // Akan di-handle setelah fetch
-    }
   }, [fetchUjian]);
 
+  // Auto-select ujian dari query param setelah fetch selesai
   useEffect(() => {
     const id = searchParams.get("id");
     if (id && ujianList.length > 0) {
@@ -104,11 +114,7 @@ export default function SiswaUjianPage() {
 
   const handleMulaiUjian = async () => {
     if (!selectedUjian) return;
-
-    // Reset exam store
     resetExam();
-
-    // Simpan info ujian ke store
     router.push(`/ujian-aktif/${selectedUjian._id}`);
   };
 
@@ -135,7 +141,7 @@ export default function SiswaUjianPage() {
               <UjianAvailableCard
                 key={ujian._id}
                 ujian={ujian}
-                onKerjakan={(id) => {
+                onKerjakan={() => {
                   setSelectedUjian(ujian);
                   setTokenInput("");
                   setTokenError("");
@@ -167,9 +173,7 @@ export default function SiswaUjianPage() {
                   <Clock className="w-3 h-3" />
                   {selectedUjian.durasi} menit
                 </span>
-                <span>
-                  {selectedUjian.soalIds?.length || 0} soal
-                </span>
+                <span>{selectedUjian.soalIds?.length || 0} soal</span>
                 <Badge variant="success" dot>
                   {selectedUjian.mapel}
                 </Badge>
@@ -179,7 +183,8 @@ export default function SiswaUjianPage() {
             {/* Token Input */}
             <div>
               <label className="form-label">
-                Token dari Guru <span className="text-red-400">*</span>
+                Token dari Guru{" "}
+                <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
@@ -282,11 +287,15 @@ export default function SiswaUjianPage() {
                 </div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-[#6B7280]">Durasi</span>
-                  <span className="text-white">{verifiedUjian.durasi} menit</span>
+                  <span className="text-white">
+                    {verifiedUjian.durasi} menit
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#6B7280]">Jumlah Soal</span>
-                  <span className="text-white">{verifiedUjian.jumlahSoal} soal</span>
+                  <span className="text-white">
+                    {verifiedUjian.jumlahSoal} soal
+                  </span>
                 </div>
               </div>
 
@@ -305,7 +314,9 @@ export default function SiswaUjianPage() {
                     "Klik kanan pada halaman ujian",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2">
-                      <span className="text-red-400 mt-0.5 flex-shrink-0">•</span>
+                      <span className="text-red-400 mt-0.5 flex-shrink-0">
+                        •
+                      </span>
                       {item}
                     </li>
                   ))}
@@ -346,5 +357,14 @@ export default function SiswaUjianPage() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+// ── Default Export dengan Suspense ──
+export default function SiswaUjianPage() {
+  return (
+    <Suspense fallback={<SiswaUjianLoading />}>
+      <SiswaUjianContent />
+    </Suspense>
   );
 }
