@@ -1,19 +1,16 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   ClipboardList,
-  Settings,
   Play,
   Square,
-  Copy,
   Trash2,
   Eye,
   Key,
-  ChevronRight,
   Calendar,
   Clock,
   Users,
@@ -32,15 +29,10 @@ import {
 } from "@/components/ui";
 import { SectionHeader, CopyButton } from "@/components/shared";
 import { useAuthStore } from "@/store";
-import {
-  cn,
-  statusUjianConfig,
-  formatTanggal,
-  formatWaktu,
-} from "@/lib/utils";
+import { cn, statusUjianConfig, formatTanggal } from "@/lib/utils";
 import toast from "react-hot-toast";
 
-// ── Buat Ujian Modal ──
+//  Buat Ujian Modal 
 interface BuatUjianModalProps {
   open: boolean;
   onClose: () => void;
@@ -90,8 +82,10 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
       });
       const data = await res.json();
       setSoalList(data.data?.list || []);
-    } catch {}
-    finally { setSoalLoading(false); }
+    } catch {
+    } finally {
+      setSoalLoading(false);
+    }
   }, [token, soalSearch, form.mapel]);
 
   useEffect(() => {
@@ -132,7 +126,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Ujian berhasil dibuat! 🎉");
+        toast.success("Ujian berhasil dibuat! ");
         onSuccess();
         onClose();
         resetForm();
@@ -171,28 +165,49 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
     <Modal
       open={open}
       onClose={() => { onClose(); resetForm(); }}
-      title={step === 1 ? "Informasi Ujian" : step === 2 ? "Pilih Soal" : "Pengaturan"}
+      title={
+        step === 1 ? "Informasi Ujian"
+          : step === 2 ? "Pilih Soal"
+          : "Pengaturan"
+      }
       size="lg"
     >
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-5">
         {["Info", "Soal", "Setting"].map((s, i) => (
           <React.Fragment key={s}>
-            <div className={cn(
-              "flex items-center gap-1.5 text-xs font-medium",
-              step > i + 1 ? "text-purple-400" : step === i + 1 ? "text-white" : "text-[#6B7280]"
-            )}>
-              <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs",
-                step > i + 1 ? "bg-purple-500 text-white"
-                  : step === i + 1 ? "border-2 border-purple-500 text-purple-400"
-                  : "bg-[#2A2A4A] text-[#6B7280]"
-              )}>
-                {step > i + 1 ? "✓" : i + 1}
+            <div
+              className={cn(
+                "flex items-center gap-1.5 text-xs font-medium",
+                step > i + 1
+                  ? "text-purple-400"
+                  : step === i + 1
+                  ? "text-white"
+                  : "text-[#6B7280]"
+              )}
+            >
+              <div
+                className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs",
+                  step > i + 1
+                    ? "bg-purple-500 text-white"
+                    : step === i + 1
+                    ? "border-2 border-purple-500 text-purple-400"
+                    : "bg-[#2A2A4A] text-[#6B7280]"
+                )}
+              >
+                {step > i + 1 ? "" : i + 1}
               </div>
               {s}
             </div>
-            {i < 2 && <div className={cn("flex-1 h-px", step > i + 1 ? "bg-purple-500" : "bg-[#2A2A4A]")} />}
+            {i < 2 && (
+              <div
+                className={cn(
+                  "flex-1 h-px",
+                  step > i + 1 ? "bg-purple-500" : "bg-[#2A2A4A]"
+                )}
+              />
+            )}
           </React.Fragment>
         ))}
       </div>
@@ -226,7 +241,9 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               <input
                 type="datetime-local"
                 value={form.tanggalMulai}
-                onChange={(e) => setForm({ ...form, tanggalMulai: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, tanggalMulai: e.target.value })
+                }
                 className="input"
               />
             </div>
@@ -235,7 +252,9 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               <input
                 type="datetime-local"
                 value={form.tanggalSelesai}
-                onChange={(e) => setForm({ ...form, tanggalSelesai: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, tanggalSelesai: e.target.value })
+                }
                 className="input"
               />
             </div>
@@ -244,7 +263,9 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
             label="Durasi (menit)"
             type="number"
             value={form.durasi}
-            onChange={(e) => setForm({ ...form, durasi: Number(e.target.value) })}
+            onChange={(e) =>
+              setForm({ ...form, durasi: Number(e.target.value) })
+            }
             min={5}
             max={300}
           />
@@ -253,7 +274,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
             fullWidth
             onClick={() => { if (validateStep1()) setStep(2); }}
           >
-            Lanjut Pilih Soal →
+            Lanjut Pilih Soal 
           </Button>
         </div>
       )}
@@ -280,7 +301,9 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
           <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
             {soalLoading ? (
               <div className="space-y-2">
-                {[1,2,3].map(i => <div key={i} className="skeleton h-12 rounded-xl" />)}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="skeleton h-12 rounded-xl" />
+                ))}
               </div>
             ) : soalList.length === 0 ? (
               <p className="text-center text-[#6B7280] text-sm py-8">
@@ -301,18 +324,24 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0",
-                        isSelected ? "bg-purple-500 border-purple-500" : "border-[#4A4A6A]"
-                      )}>
-                        {isSelected && <span className="text-white text-xs">✓</span>}
+                      <div
+                        className={cn(
+                          "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0",
+                          isSelected
+                            ? "bg-purple-500 border-purple-500"
+                            : "border-[#4A4A6A]"
+                        )}
+                      >
+                        {isSelected && (
+                          <span className="text-white text-xs"></span>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-white line-clamp-1">
                           {soal.pertanyaan}
                         </p>
                         <p className="text-[10px] text-[#6B7280] mt-0.5">
-                          {soal.tipe} • {soal.mapel} • {soal.poin} poin
+                          {soal.tipe} � {soal.mapel} � {soal.poin} poin
                         </p>
                       </div>
                     </div>
@@ -327,14 +356,16 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
           )}
 
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setStep(1)}>← Kembali</Button>
+            <Button variant="secondary" onClick={() => setStep(1)}>
+               Kembali
+            </Button>
             <Button
               variant="primary"
               fullWidth
               disabled={selectedSoal.length === 0}
               onClick={() => setStep(3)}
             >
-              Lanjut Setting →
+              Lanjut Setting 
             </Button>
           </div>
         </div>
@@ -380,24 +411,28 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
 
           {/* Summary */}
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 space-y-2">
-            <p className="text-sm font-semibold text-purple-400">Ringkasan Ujian</p>
+            <p className="text-sm font-semibold text-purple-400">
+              Ringkasan Ujian
+            </p>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#B0B0C0]">
-              <span>📚 {form.nama}</span>
-              <span>📖 {form.mapel}</span>
-              <span>⏱ {form.durasi} menit</span>
-              <span>📝 {selectedSoal.length} soal</span>
+              <span> {form.nama}</span>
+              <span> {form.mapel}</span>
+              <span> {form.durasi} menit</span>
+              <span> {selectedSoal.length} soal</span>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setStep(2)}>← Kembali</Button>
+            <Button variant="secondary" onClick={() => setStep(2)}>
+               Kembali
+            </Button>
             <Button
               variant="teal"
               fullWidth
               loading={loading}
               onClick={handleSubmit}
             >
-              ✅ Buat Ujian (Draft)
+               Buat Ujian (Draft)
             </Button>
           </div>
         </div>
@@ -406,8 +441,8 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
   );
 }
 
-// ── Main Page ──
-export default function UjianPage() {
+//  Komponen utama yang pakai useSearchParams 
+function UjianContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
@@ -422,7 +457,10 @@ export default function UjianPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [tokenModal, setTokenModal] = useState<{
-    open: boolean; ujianId: string; nama: string; token?: string;
+    open: boolean;
+    ujianId: string;
+    nama: string;
+    token?: string;
   }>({ open: false, ujianId: "", nama: "" });
   const [tokenLoading, setTokenLoading] = useState(false);
   const [tutupLoading, setTutupLoading] = useState<string | null>(null);
@@ -602,8 +640,10 @@ export default function UjianPage() {
                         <div className="flex items-center gap-2 mb-1.5">
                           <Badge
                             variant={
-                              isAktif ? "success"
-                                : ujian.status === "selesai" ? "info"
+                              isAktif
+                                ? "success"
+                                : ujian.status === "selesai"
+                                ? "info"
                                 : "default"
                             }
                             dot
@@ -614,7 +654,9 @@ export default function UjianPage() {
                             {ujian.mapel}
                           </span>
                         </div>
-                        <h3 className="font-semibold text-white">{ujian.nama}</h3>
+                        <h3 className="font-semibold text-white">
+                          {ujian.nama}
+                        </h3>
                         {ujian.deskripsi && (
                           <p className="text-xs text-[#6B7280] mt-1 line-clamp-1">
                             {ujian.deskripsi}
@@ -682,7 +724,9 @@ export default function UjianPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => router.push(`/guru/ujian/${ujian._id}`)}
+                        onClick={() =>
+                          router.push(`/guru/ujian/${ujian._id}`)
+                        }
                         icon={<Eye className="w-3.5 h-3.5" />}
                       >
                         Detail & Hasil
@@ -693,7 +737,9 @@ export default function UjianPage() {
                           size="sm"
                           variant="teal"
                           loading={tokenLoading}
-                          onClick={() => handleBukaUjian(ujian._id, ujian.nama)}
+                          onClick={() =>
+                            handleBukaUjian(ujian._id, ujian.nama)
+                          }
                           icon={<Play className="w-3.5 h-3.5" />}
                         >
                           Buka Ujian
@@ -789,5 +835,27 @@ export default function UjianPage() {
         </div>
       </Modal>
     </DashboardLayout>
+  );
+}
+
+//  Loading Fallback 
+function UjianLoading() {
+  return (
+    <DashboardLayout title="Manajemen Ujian" subtitle="Memuat...">
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="skeleton h-36 rounded-2xl" />
+        ))}
+      </div>
+    </DashboardLayout>
+  );
+}
+
+//  Default Export dengan Suspense 
+export default function UjianPage() {
+  return (
+    <Suspense fallback={<UjianLoading />}>
+      <UjianContent />
+    </Suspense>
   );
 }
