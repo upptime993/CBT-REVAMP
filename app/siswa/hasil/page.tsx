@@ -1,18 +1,36 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { TrendingUp, ArrowLeft } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { SiswaLayout } from "@/components/layout";
-import { HasilCard, ScoreChart, MapelChart } from "@/components/dashboard-components";
+import {
+  HasilCard,
+  ScoreChart,
+  MapelChart,
+} from "@/components/dashboard-components";
 import { Badge, Tabs, Pagination, Spinner } from "@/components/ui";
 import { ScoreCircle, SectionHeader } from "@/components/shared";
 import { useAuthStore } from "@/store";
 import { formatTanggal, labelTipe } from "@/lib/utils";
 import toast from "react-hot-toast";
 
-export default function SiswaHasilPage() {
+// ── Loading Fallback ──
+function SiswaHasilLoading() {
+  return (
+    <SiswaLayout title="Hasil & Statistik" showBack>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="skeleton h-24 rounded-2xl" />
+        ))}
+      </div>
+    </SiswaLayout>
+  );
+}
+
+// ── Komponen utama yang pakai useSearchParams ──
+function SiswaHasilContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, token } = useAuthStore();
@@ -48,22 +66,25 @@ export default function SiswaHasilPage() {
     }
   }, [token, user?.id, page]);
 
-  const fetchDetail = useCallback(async (id: string) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/hasil?hasilId=${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setDetailHasil(data.data);
+  const fetchDetail = useCallback(
+    async (id: string) => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/hasil?hasilId=${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success) {
+          setDetailHasil(data.data);
+        }
+      } catch {
+        toast.error("Gagal memuat detail hasil");
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      toast.error("Gagal memuat detail hasil");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+    },
+    [token]
+  );
 
   useEffect(() => {
     if (hasilId) {
@@ -96,15 +117,21 @@ export default function SiswaHasilPage() {
               <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-[#2A2A4A]">
                 <div>
                   <p className="text-xs text-[#6B7280]">Skor</p>
-                  <p className="font-bold text-white">{hasil.totalSkor}/{hasil.skorMaksimal}</p>
+                  <p className="font-bold text-white">
+                    {hasil.totalSkor}/{hasil.skorMaksimal}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-[#6B7280]">Waktu</p>
-                  <p className="font-bold text-white">{hasil.waktuPengerjaan} mnt</p>
+                  <p className="font-bold text-white">
+                    {hasil.waktuPengerjaan} mnt
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-[#6B7280]">Tanggal</p>
-                  <p className="font-bold text-white text-xs">{formatTanggal(hasil.tanggalUjian)}</p>
+                  <p className="font-bold text-white text-xs">
+                    {formatTanggal(hasil.tanggalUjian)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -112,10 +139,15 @@ export default function SiswaHasilPage() {
             {/* Detail per tipe */}
             {hasil.detailPerTipe?.length > 0 && (
               <div className="bg-[#1A1A2E] border border-[#2A2A4A] rounded-2xl p-4">
-                <p className="font-semibold text-white mb-3">Rincian per Tipe Soal</p>
+                <p className="font-semibold text-white mb-3">
+                  Rincian per Tipe Soal
+                </p>
                 <div className="space-y-2">
                   {hasil.detailPerTipe.map((d: any) => (
-                    <div key={d.tipe} className="flex items-center justify-between text-sm">
+                    <div
+                      key={d.tipe}
+                      className="flex items-center justify-between text-sm"
+                    >
                       <span className="text-[#B0B0C0]">{labelTipe(d.tipe)}</span>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-[#6B7280]">
@@ -221,10 +253,16 @@ export default function SiswaHasilPage() {
         <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
         {activeTab === "riwayat" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-3"
+          >
             {loading ? (
               <div className="space-y-3">
-                {[1,2,3].map(i => <div key={i} className="skeleton h-24 rounded-2xl" />)}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="skeleton h-24 rounded-2xl" />
+                ))}
               </div>
             ) : hasilList.length === 0 ? (
               <div className="text-center py-16 text-[#6B7280]">
@@ -237,34 +275,66 @@ export default function SiswaHasilPage() {
                   <HasilCard
                     key={hasil._id}
                     hasil={hasil}
-                    onClick={() => router.push(`/siswa/hasil?id=${hasil._id}`)}
+                    onClick={() =>
+                      router.push(`/siswa/hasil?id=${hasil._id}`)
+                    }
                   />
                 ))}
-                <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                />
               </>
             )}
           </motion.div>
         )}
 
         {activeTab === "statistik" && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-5"
+          >
             {chartData.length > 0 ? (
               <>
                 <div className="bg-[#1A1A2E] border border-[#2A2A4A] rounded-2xl p-4">
-                  <SectionHeader title="Grafik Nilai" subtitle="Perkembangan nilai dari waktu ke waktu" className="mb-4" />
+                  <SectionHeader
+                    title="Grafik Nilai"
+                    subtitle="Perkembangan nilai dari waktu ke waktu"
+                    className="mb-4"
+                  />
                   <ScoreChart data={chartData} />
                 </div>
                 {statistikMapel.length > 0 && (
                   <div className="bg-[#1A1A2E] border border-[#2A2A4A] rounded-2xl p-4">
-                    <SectionHeader title="Per Mata Pelajaran" className="mb-4" />
+                    <SectionHeader
+                      title="Per Mata Pelajaran"
+                      className="mb-4"
+                    />
                     <MapelChart data={statistikMapel} />
                     <div className="mt-4 space-y-2">
                       {statistikMapel.map((m) => (
-                        <div key={m.mapel} className="flex items-center justify-between">
-                          <span className="text-sm text-[#B0B0C0]">{m.mapel}</span>
+                        <div
+                          key={m.mapel}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="text-sm text-[#B0B0C0]">
+                            {m.mapel}
+                          </span>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#6B7280]">{m.jumlahUjian}x</span>
-                            <span className={`font-bold text-sm ${m.rataRata >= 75 ? "text-green-400" : m.rataRata >= 50 ? "text-yellow-400" : "text-red-400"}`}>
+                            <span className="text-xs text-[#6B7280]">
+                              {m.jumlahUjian}x
+                            </span>
+                            <span
+                              className={`font-bold text-sm ${
+                                m.rataRata >= 75
+                                  ? "text-green-400"
+                                  : m.rataRata >= 50
+                                  ? "text-yellow-400"
+                                  : "text-red-400"
+                              }`}
+                            >
                               {m.rataRata}
                             </span>
                           </div>
@@ -284,5 +354,14 @@ export default function SiswaHasilPage() {
         )}
       </div>
     </SiswaLayout>
+  );
+}
+
+// ── Default Export dengan Suspense ──
+export default function SiswaHasilPage() {
+  return (
+    <Suspense fallback={<SiswaHasilLoading />}>
+      <SiswaHasilContent />
+    </Suspense>
   );
 }
