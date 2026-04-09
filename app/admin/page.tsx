@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useCallback, useEffect, Suspense } from "react";
 import {
   Plus,
   Trash2,
@@ -9,7 +8,6 @@ import {
   Users,
   GraduationCap,
   School,
-  Search,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import {
@@ -22,11 +20,9 @@ import {
   Tabs,
   SearchBar,
   Pagination,
-  EmptyState,
 } from "@/components/ui";
 import { Table } from "@/components/shared";
 import { useAuthStore } from "@/store";
-import { formatTanggal } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 
@@ -81,30 +77,16 @@ function SiswaModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama.trim()) {
-      toast.error("Nama wajib diisi");
-      return;
-    }
-    if (!/^\d{10}$/.test(form.nisn)) {
-      toast.error("NISN harus 10 digit angka");
-      return;
-    }
-    if (!form.kelasId) {
-      toast.error("Kelas wajib dipilih");
-      return;
-    }
+    if (!form.nama.trim()) { toast.error("Nama wajib diisi"); return; }
+    if (!/^\d{10}$/.test(form.nisn)) { toast.error("NISN harus 10 digit angka"); return; }
+    if (!form.kelasId) { toast.error("Kelas wajib dipilih"); return; }
 
     const selectedKelas = kelasList.find((k) => k._id === form.kelasId);
     setLoading(true);
     try {
       const method = editData ? "PUT" : "POST";
       const body = editData
-        ? {
-            tipe: "siswa",
-            id: editData._id,
-            ...form,
-            kelas: selectedKelas?.nama,
-          }
+        ? { tipe: "siswa", id: editData._id, ...form, kelas: selectedKelas?.nama }
         : { tipe: "siswa", ...form, kelas: selectedKelas?.nama };
 
       const res = await fetch("/api/manajemen", {
@@ -117,9 +99,7 @@ function SiswaModal({
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(
-          editData ? "Data siswa diperbarui!" : "Siswa berhasil ditambahkan!"
-        );
+        toast.success(editData ? "Data siswa diperbarui!" : "Siswa berhasil ditambahkan!");
         onSuccess();
         onClose();
       } else {
@@ -191,20 +171,10 @@ function SiswaModal({
           </div>
         </div>
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={onClose}
-            type="button"
-          >
+          <Button variant="secondary" fullWidth onClick={onClose} type="button">
             Batal
           </Button>
-          <Button
-            variant="primary"
-            fullWidth
-            loading={loading}
-            type="submit"
-          >
+          <Button variant="primary" fullWidth loading={loading} type="submit">
             {editData ? "Simpan Perubahan" : "Tambah Siswa"}
           </Button>
         </div>
@@ -245,27 +215,14 @@ function GuruModal({
         role: editData.role || "guru",
       });
     } else {
-      setForm({
-        nama: "",
-        username: "",
-        password: "",
-        mapel: "",
-        role: "guru",
-      });
+      setForm({ nama: "", username: "", password: "", mapel: "", role: "guru" });
     }
   }, [editData, open]);
 
   const MAPEL_OPTIONS = [
-    "Matematika",
-    "Bahasa Indonesia",
-    "Bahasa Inggris",
-    "IPA Biologi",
-    "IPA Fisika",
-    "IPA Kimia",
-    "IPS",
-    "PKn",
-    "Agama",
-    "Lainnya",
+    "Matematika", "Bahasa Indonesia", "Bahasa Inggris",
+    "IPA Biologi", "IPA Fisika", "IPA Kimia",
+    "IPS", "PKn", "Agama", "Lainnya",
   ].map((m) => ({ value: m, label: m }));
 
   const ROLE_OPTIONS = [
@@ -275,21 +232,11 @@ function GuruModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama.trim()) {
-      toast.error("Nama wajib diisi");
-      return;
-    }
-    if (!form.username.trim()) {
-      toast.error("Username wajib diisi");
-      return;
-    }
-    if (!editData && !form.password) {
-      toast.error("Password wajib diisi");
-      return;
-    }
+    if (!form.nama.trim()) { toast.error("Nama wajib diisi"); return; }
+    if (!form.username.trim()) { toast.error("Username wajib diisi"); return; }
+    if (!editData && !form.password) { toast.error("Password wajib diisi"); return; }
     if (form.password && form.password.length < 6) {
-      toast.error("Password minimal 6 karakter");
-      return;
+      toast.error("Password minimal 6 karakter"); return;
     }
 
     setLoading(true);
@@ -309,9 +256,7 @@ function GuruModal({
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(
-          editData ? "Data guru diperbarui!" : "Akun guru berhasil dibuat!"
-        );
+        toast.success(editData ? "Data guru diperbarui!" : "Akun guru berhasil dibuat!");
         onSuccess();
         onClose();
       } else {
@@ -349,11 +294,7 @@ function GuruModal({
           required
         />
         <Input
-          label={
-            editData
-              ? "Password Baru (kosongkan jika tidak diubah)"
-              : "Password"
-          }
+          label={editData ? "Password Baru (kosongkan jika tidak diubah)" : "Password"}
           type="password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -374,20 +315,10 @@ function GuruModal({
           onChange={(v) => setForm({ ...form, role: v })}
         />
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={onClose}
-            type="button"
-          >
+          <Button variant="secondary" fullWidth onClick={onClose} type="button">
             Batal
           </Button>
-          <Button
-            variant="primary"
-            fullWidth
-            loading={loading}
-            type="submit"
-          >
+          <Button variant="primary" fullWidth loading={loading} type="submit">
             {editData ? "Simpan" : "Buat Akun"}
           </Button>
         </div>
@@ -417,10 +348,7 @@ function KelasModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama.trim()) {
-      toast.error("Nama kelas wajib diisi");
-      return;
-    }
+    if (!form.nama.trim()) { toast.error("Nama kelas wajib diisi"); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/manajemen", {
@@ -436,12 +364,7 @@ function KelasModal({
         toast.success("Kelas berhasil dibuat!");
         onSuccess();
         onClose();
-        setForm({
-          nama: "",
-          tingkat: "X",
-          tahunAjaran: "2024/2025",
-          waliKelas: "",
-        });
+        setForm({ nama: "", tingkat: "X", tahunAjaran: "2024/2025", waliKelas: "" });
       } else {
         toast.error(data.message);
       }
@@ -485,20 +408,10 @@ function KelasModal({
           placeholder="Nama wali kelas"
         />
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={onClose}
-            type="button"
-          >
+          <Button variant="secondary" fullWidth onClick={onClose} type="button">
             Batal
           </Button>
-          <Button
-            variant="primary"
-            fullWidth
-            loading={loading}
-            type="submit"
-          >
+          <Button variant="primary" fullWidth loading={loading} type="submit">
             Tambah Kelas
           </Button>
         </div>
@@ -507,8 +420,9 @@ function KelasModal({
   );
 }
 
-// ── Main Admin Page ──
-export default function AdminPage() {
+// ── Komponen utama yang pakai useSearchParams ──
+// Dipisah agar bisa dibungkus Suspense
+function AdminContent() {
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
 
@@ -531,11 +445,7 @@ export default function AdminPage() {
   const [kelasList, setKelasList] = useState<any[]>([]);
 
   const tabs = [
-    {
-      id: "siswa",
-      label: "Siswa",
-      icon: <GraduationCap className="w-4 h-4" />,
-    },
+    { id: "siswa", label: "Siswa", icon: <GraduationCap className="w-4 h-4" /> },
     { id: "guru", label: "Guru", icon: <Users className="w-4 h-4" /> },
     { id: "kelas", label: "Kelas", icon: <School className="w-4 h-4" /> },
   ];
@@ -575,17 +485,9 @@ export default function AdminPage() {
     } catch {}
   }, [token]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    fetchKelas();
-  }, [fetchKelas]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [activeTab, search]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchKelas(); }, [fetchKelas]);
+  useEffect(() => { setPage(1); }, [activeTab, search]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -613,9 +515,6 @@ export default function AdminPage() {
     }
   };
 
-  // ── Column Definitions ──
-  // Fix 1: kolom "no" menggunakan data.indexOf(row) untuk hitung nomor urut
-  // dan semua render return ReactNode (bukan number mentah)
   const siswaColumns = [
     {
       key: "no",
@@ -635,10 +534,7 @@ export default function AdminPage() {
         </div>
       ),
     },
-    {
-      key: "kelas",
-      header: "Kelas",
-    },
+    { key: "kelas", header: "Kelas" },
     {
       key: "jenisKelamin",
       header: "JK",
@@ -655,10 +551,7 @@ export default function AdminPage() {
       render: (row: any) => (
         <div className="flex items-center justify-end gap-1">
           <button
-            onClick={() => {
-              setEditData(row);
-              setShowSiswaModal(true);
-            }}
+            onClick={() => { setEditData(row); setShowSiswaModal(true); }}
             className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors"
           >
             <Edit className="w-4 h-4" />
@@ -711,10 +604,7 @@ export default function AdminPage() {
       render: (row: any) => (
         <div className="flex items-center justify-end gap-1">
           <button
-            onClick={() => {
-              setEditData(row);
-              setShowGuruModal(true);
-            }}
+            onClick={() => { setEditData(row); setShowGuruModal(true); }}
             className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors"
           >
             <Edit className="w-4 h-4" />
@@ -738,14 +628,8 @@ export default function AdminPage() {
         <p className="font-medium text-white">{row.nama}</p>
       ),
     },
-    {
-      key: "tingkat",
-      header: "Tingkat",
-    },
-    {
-      key: "tahunAjaran",
-      header: "Tahun Ajaran",
-    },
+    { key: "tingkat", header: "Tingkat" },
+    { key: "tahunAjaran", header: "Tahun Ajaran" },
     {
       key: "waliKelas",
       header: "Wali Kelas",
@@ -782,35 +666,27 @@ export default function AdminPage() {
           }}
           icon={<Plus className="w-4 h-4" />}
         >
-          Tambah{" "}
-          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+          Tambah {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
         </Button>
       }
     >
       <div className="space-y-5">
-        {/* Tabs */}
         <Tabs
           tabs={tabs}
           active={activeTab}
-          onChange={(id) => {
-            setActiveTab(id);
-            setSearch("");
-          }}
+          onChange={(id) => { setActiveTab(id); setSearch(""); }}
         />
 
-        {/* Search */}
         <SearchBar
           value={search}
           onChange={setSearch}
           placeholder={`Cari ${activeTab}...`}
         />
 
-        {/* Info jumlah data */}
         <div className="text-xs text-[#6B7280]">
           Menampilkan {data.length} dari {total} data
         </div>
 
-        {/* Table */}
         <Table
           columns={
             activeTab === "siswa"
@@ -825,45 +701,27 @@ export default function AdminPage() {
           emptyText={`Belum ada ${activeTab} terdaftar`}
         />
 
-        {/* Pagination */}
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onChange={setPage}
-        />
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
 
-      {/* ── Modals ── */}
       <SiswaModal
         open={showSiswaModal}
-        onClose={() => {
-          setShowSiswaModal(false);
-          setEditData(null);
-        }}
+        onClose={() => { setShowSiswaModal(false); setEditData(null); }}
         onSuccess={fetchData}
         editData={editData}
         kelasList={kelasList}
       />
-
       <GuruModal
         open={showGuruModal}
-        onClose={() => {
-          setShowGuruModal(false);
-          setEditData(null);
-        }}
+        onClose={() => { setShowGuruModal(false); setEditData(null); }}
         onSuccess={fetchData}
         editData={editData}
       />
-
       <KelasModal
         open={showKelasModal}
         onClose={() => setShowKelasModal(false)}
-        onSuccess={() => {
-          fetchData();
-          fetchKelas();
-        }}
+        onSuccess={() => { fetchData(); fetchKelas(); }}
       />
-
       <ConfirmModal
         open={!!deleteId}
         onClose={() => setDeleteId(null)}
@@ -873,5 +731,25 @@ export default function AdminPage() {
         loading={deleteLoading}
       />
     </DashboardLayout>
+  );
+}
+
+// ── Loading fallback ──
+function AdminLoading() {
+  return (
+    <DashboardLayout title="Manajemen Pengguna" subtitle="Memuat...">
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </DashboardLayout>
+  );
+}
+
+// ── Default Export dengan Suspense ──
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <AdminContent />
+    </Suspense>
   );
 }
