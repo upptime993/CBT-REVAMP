@@ -520,13 +520,26 @@ export default function AdminPage() {
   };
 
   const siswaColumns = [
-    { key: "no", header: "No", width: "50px", render: (_: any, i: number) => (page - 1) * 15 + i + 1 },
-    { key: "nama", header: "Nama", render: (row: any) => (
+  {
+    key: "no",
+    header: "No",
+    width: "50px",
+    render: (row: any) =>
+      (page - 1) * 15 +
+      data.findIndex((r: any) => r._id === row._id) +
+      1,
+  },
+  {
+    key: "nama",
+    header: "Nama",
+    render: (row: any) => (
       <div>
         <p className="font-medium text-white">{row.nama}</p>
         <p className="text-xs text-[#6B7280]">{row.nisn}</p>
       </div>
-    )},
+    ),
+  },
+];
     { key: "kelas", header: "Kelas" },
     { key: "jenisKelamin", header: "JK", render: (row: any) => (
       <Badge variant={row.jenisKelamin === "L" ? "info" : "purple"}>
