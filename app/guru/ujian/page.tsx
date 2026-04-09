@@ -14,6 +14,10 @@ import {
   Calendar,
   Clock,
   Users,
+  CheckCircle,
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import {
@@ -64,9 +68,16 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
   const [soalSearch, setSoalSearch] = useState("");
 
   const MAPEL_OPTIONS = [
-    "Matematika", "Bahasa Indonesia", "Bahasa Inggris",
-    "IPA Biologi", "IPA Fisika", "IPA Kimia",
-    "IPS Sejarah", "IPS Geografi", "PKn", "Lainnya",
+    "Matematika",
+    "Bahasa Indonesia",
+    "Bahasa Inggris",
+    "IPA Biologi",
+    "IPA Fisika",
+    "IPA Kimia",
+    "IPS Sejarah",
+    "IPS Geografi",
+    "PKn",
+    "Lainnya",
   ].map((m) => ({ value: m, label: m }));
 
   const fetchSoal = useCallback(async () => {
@@ -126,7 +137,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Ujian berhasil dibuat! ");
+        toast.success("Ujian berhasil dibuat!");
         onSuccess();
         onClose();
         resetForm();
@@ -144,37 +155,61 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
     setStep(1);
     setSelectedSoal([]);
     setForm({
-      nama: "", mapel: "", deskripsi: "",
-      durasi: 60, tanggalMulai: "", tanggalSelesai: "",
-      acakSoal: false, acakJawaban: false,
-      tampilkanHasil: true, bataspelanggaran: 3, antiCheat: true,
+      nama: "",
+      mapel: "",
+      deskripsi: "",
+      durasi: 60,
+      tanggalMulai: "",
+      tanggalSelesai: "",
+      acakSoal: false,
+      acakJawaban: false,
+      tampilkanHasil: true,
+      bataspelanggaran: 3,
+      antiCheat: true,
     });
   };
 
   const validateStep1 = () => {
-    if (!form.nama.trim()) { toast.error("Nama ujian wajib diisi"); return false; }
-    if (!form.mapel) { toast.error("Mata pelajaran wajib dipilih"); return false; }
-    if (!form.tanggalMulai || !form.tanggalSelesai) {
-      toast.error("Tanggal mulai dan selesai wajib diisi"); return false;
+    if (!form.nama.trim()) {
+      toast.error("Nama ujian wajib diisi");
+      return false;
     }
-    if (form.durasi < 5) { toast.error("Durasi minimal 5 menit"); return false; }
+    if (!form.mapel) {
+      toast.error("Mata pelajaran wajib dipilih");
+      return false;
+    }
+    if (!form.tanggalMulai || !form.tanggalSelesai) {
+      toast.error("Tanggal mulai dan selesai wajib diisi");
+      return false;
+    }
+    if (form.durasi < 5) {
+      toast.error("Durasi minimal 5 menit");
+      return false;
+    }
     return true;
   };
+
+  const stepLabels = ["Info", "Soal", "Setting"];
 
   return (
     <Modal
       open={open}
-      onClose={() => { onClose(); resetForm(); }}
+      onClose={() => {
+        onClose();
+        resetForm();
+      }}
       title={
-        step === 1 ? "Informasi Ujian"
-          : step === 2 ? "Pilih Soal"
+        step === 1
+          ? "Informasi Ujian"
+          : step === 2
+          ? "Pilih Soal"
           : "Pengaturan"
       }
       size="lg"
     >
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-5">
-        {["Info", "Soal", "Setting"].map((s, i) => (
+        {stepLabels.map((s, i) => (
           <React.Fragment key={s}>
             <div
               className={cn(
@@ -196,7 +231,11 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
                     : "bg-[#2A2A4A] text-[#6B7280]"
                 )}
               >
-                {step > i + 1 ? "" : i + 1}
+                {step > i + 1 ? (
+                  <CheckCircle className="w-3.5 h-3.5" />
+                ) : (
+                  i + 1
+                )}
               </div>
               {s}
             </div>
@@ -272,9 +311,12 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
           <Button
             variant="primary"
             fullWidth
-            onClick={() => { if (validateStep1()) setStep(2); }}
+            onClick={() => {
+              if (validateStep1()) setStep(2);
+            }}
+            icon={<ArrowRight className="w-4 h-4" />}
           >
-            Lanjut Pilih Soal 
+            Lanjut Pilih Soal
           </Button>
         </div>
       )}
@@ -333,7 +375,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
                         )}
                       >
                         {isSelected && (
-                          <span className="text-white text-xs"></span>
+                          <CheckCircle className="w-3 h-3 text-white" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -356,16 +398,21 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
           )}
 
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setStep(1)}>
-               Kembali
+            <Button
+              variant="secondary"
+              onClick={() => setStep(1)}
+              icon={<ArrowLeft className="w-4 h-4" />}
+            >
+              Kembali
             </Button>
             <Button
               variant="primary"
               fullWidth
               disabled={selectedSoal.length === 0}
               onClick={() => setStep(3)}
+              icon={<ArrowRight className="w-4 h-4" />}
             >
-              Lanjut Setting 
+              Lanjut Setting
             </Button>
           </div>
         </div>
@@ -415,24 +462,29 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               Ringkasan Ujian
             </p>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#B0B0C0]">
-              <span> {form.nama}</span>
-              <span> {form.mapel}</span>
-              <span> {form.durasi} menit</span>
-              <span> {selectedSoal.length} soal</span>
+              <span>{form.nama}</span>
+              <span>{form.mapel}</span>
+              <span>{form.durasi} menit</span>
+              <span>{selectedSoal.length} soal dipilih</span>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setStep(2)}>
-               Kembali
+            <Button
+              variant="secondary"
+              onClick={() => setStep(2)}
+              icon={<ArrowLeft className="w-4 h-4" />}
+            >
+              Kembali
             </Button>
             <Button
               variant="teal"
               fullWidth
               loading={loading}
               onClick={handleSubmit}
+              icon={<CheckCircle className="w-4 h-4" />}
             >
-               Buat Ujian (Draft)
+              Buat Ujian (Draft)
             </Button>
           </div>
         </div>
@@ -487,7 +539,9 @@ function UjianContent() {
     }
   }, [token, statusFilter]);
 
-  useEffect(() => { fetchUjian(); }, [fetchUjian]);
+  useEffect(() => {
+    fetchUjian();
+  }, [fetchUjian]);
 
   const handleBukaUjian = async (ujianId: string, nama: string) => {
     setTokenLoading(true);
