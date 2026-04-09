@@ -17,7 +17,6 @@ import {
   CheckCircle,
   ArrowLeft,
   ArrowRight,
-  ChevronRight,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import {
@@ -31,12 +30,11 @@ import {
   EmptyState,
   Alert,
 } from "@/components/ui";
-import { SectionHeader, CopyButton } from "@/components/shared";
+import { CopyButton } from "@/components/shared";
 import { useAuthStore } from "@/store";
 import { cn, statusUjianConfig, formatTanggal } from "@/lib/utils";
 import toast from "react-hot-toast";
 
-//  Buat Ujian Modal 
 interface BuatUjianModalProps {
   open: boolean;
   onClose: () => void;
@@ -47,7 +45,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
   const { token } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-
   const [form, setForm] = useState({
     nama: "",
     mapel: "",
@@ -61,7 +58,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
     bataspelanggaran: 3,
     antiCheat: true,
   });
-
   const [soalList, setSoalList] = useState<any[]>([]);
   const [selectedSoal, setSelectedSoal] = useState<string[]>([]);
   const [soalLoading, setSoalLoading] = useState(false);
@@ -109,48 +105,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
     );
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/ujian", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          nama: form.nama,
-          mapel: form.mapel,
-          deskripsi: form.deskripsi,
-          soalIds: selectedSoal,
-          durasi: form.durasi,
-          tanggalMulai: form.tanggalMulai,
-          tanggalSelesai: form.tanggalSelesai,
-          pengaturan: {
-            acakSoal: form.acakSoal,
-            acakJawaban: form.acakJawaban,
-            tampilkanHasil: form.tampilkanHasil,
-            bataspelanggaran: form.bataspelanggaran,
-            antiCheat: form.antiCheat,
-          },
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success("Ujian berhasil dibuat!");
-        onSuccess();
-        onClose();
-        resetForm();
-      } else {
-        toast.error(data.message);
-      }
-    } catch {
-      toast.error("Gagal membuat ujian");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const resetForm = () => {
     setStep(1);
     setSelectedSoal([]);
@@ -189,6 +143,48 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
     return true;
   };
 
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/ujian", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nama: form.nama,
+          mapel: form.mapel,
+          deskripsi: form.deskripsi,
+          soalIds: selectedSoal,
+          durasi: form.durasi,
+          tanggalMulai: form.tanggalMulai,
+          tanggalSelesai: form.tanggalSelesai,
+          pengaturan: {
+            acakSoal: form.acakSoal,
+            acakJawaban: form.acakJawaban,
+            tampilkanHasil: form.tampilkanHasil,
+            bataspelanggaran: form.bataspelanggaran,
+            antiCheat: form.antiCheat,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Ujian berhasil dibuat");
+        onSuccess();
+        onClose();
+        resetForm();
+      } else {
+        toast.error(data.message);
+      }
+    } catch {
+      toast.error("Gagal membuat ujian");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stepLabels = ["Info", "Soal", "Setting"];
 
   return (
@@ -199,15 +195,10 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
         resetForm();
       }}
       title={
-        step === 1
-          ? "Informasi Ujian"
-          : step === 2
-          ? "Pilih Soal"
-          : "Pengaturan"
+        step === 1 ? "Informasi Ujian" : step === 2 ? "Pilih Soal" : "Pengaturan"
       }
       size="lg"
     >
-      {/* Step indicator */}
       <div className="flex items-center gap-2 mb-5">
         {stepLabels.map((s, i) => (
           <React.Fragment key={s}>
@@ -251,7 +242,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
         ))}
       </div>
 
-      {/* Step 1: Info */}
       {step === 1 && (
         <div className="space-y-4">
           <Input
@@ -269,14 +259,14 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
             required
           />
           <Input
-            label="Deskripsi / Instruksi (opsional)"
+            label="Deskripsi (opsional)"
             value={form.deskripsi}
             onChange={(e) => setForm({ ...form, deskripsi: e.target.value })}
             placeholder="Instruksi untuk siswa..."
           />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="form-label">Tanggal Mulai *</label>
+              <label className="form-label">Tanggal Mulai</label>
               <input
                 type="datetime-local"
                 value={form.tanggalMulai}
@@ -287,7 +277,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               />
             </div>
             <div>
-              <label className="form-label">Tanggal Selesai *</label>
+              <label className="form-label">Tanggal Selesai</label>
               <input
                 type="datetime-local"
                 value={form.tanggalSelesai}
@@ -321,7 +311,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
         </div>
       )}
 
-      {/* Step 2: Pilih Soal */}
       {step === 2 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -339,7 +328,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               className="input text-xs py-1.5 w-40"
             />
           </div>
-
           <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
             {soalLoading ? (
               <div className="space-y-2">
@@ -349,7 +337,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               </div>
             ) : soalList.length === 0 ? (
               <p className="text-center text-[#6B7280] text-sm py-8">
-                Tidak ada soal ditemukan. Buat soal dulu di Bank Soal.
+                Tidak ada soal ditemukan.
               </p>
             ) : (
               soalList.map((soal) => {
@@ -383,7 +371,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
                           {soal.pertanyaan}
                         </p>
                         <p className="text-[10px] text-[#6B7280] mt-0.5">
-                          {soal.tipe} • {soal.mapel} • {soal.poin} poin
+                          {soal.tipe} - {soal.mapel} - {soal.poin} poin
                         </p>
                       </div>
                     </div>
@@ -392,11 +380,9 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               })
             )}
           </div>
-
           {selectedSoal.length === 0 && (
             <Alert type="warning" message="Pilih minimal 1 soal untuk ujian" />
           )}
-
           <div className="flex gap-3">
             <Button
               variant="secondary"
@@ -418,7 +404,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
         </div>
       )}
 
-      {/* Step 3: Setting */}
       {step === 3 && (
         <div className="space-y-4">
           <div className="space-y-3 p-4 bg-[#16213E] rounded-xl">
@@ -443,9 +428,8 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               label="Aktifkan mode anti-cheat"
             />
           </div>
-
           <Select
-            label="Batas Pelanggaran Sebelum Dikeluarkan"
+            label="Batas Pelanggaran"
             options={[
               { value: "1", label: "1x Pelanggaran" },
               { value: "2", label: "2x Pelanggaran" },
@@ -455,8 +439,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
             value={String(form.bataspelanggaran)}
             onChange={(v) => setForm({ ...form, bataspelanggaran: Number(v) })}
           />
-
-          {/* Summary */}
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 space-y-2">
             <p className="text-sm font-semibold text-purple-400">
               Ringkasan Ujian
@@ -468,7 +450,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               <span>{selectedSoal.length} soal dipilih</span>
             </div>
           </div>
-
           <div className="flex gap-3">
             <Button
               variant="secondary"
@@ -484,7 +465,7 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
               onClick={handleSubmit}
               icon={<CheckCircle className="w-4 h-4" />}
             >
-              Buat Ujian (Draft)
+              Buat Ujian Draft
             </Button>
           </div>
         </div>
@@ -493,7 +474,6 @@ function BuatUjianModal({ open, onClose, onSuccess }: BuatUjianModalProps) {
   );
 }
 
-//  Komponen utama yang pakai useSearchParams 
 function UjianContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -557,7 +537,7 @@ function UjianContent() {
       const data = await res.json();
       if (data.success) {
         setTokenModal({ open: true, ujianId, nama, token: data.data.token });
-        toast.success("Ujian dibuka! Bagikan token ke siswa.");
+        toast.success("Ujian dibuka, bagikan token ke siswa");
         fetchUjian();
       } else {
         toast.error(data.message);
@@ -640,7 +620,6 @@ function UjianContent() {
       }
     >
       <div className="space-y-5">
-        {/* Filter */}
         <div className="flex gap-3">
           <Select
             options={STATUS_FILTER}
@@ -650,7 +629,6 @@ function UjianContent() {
           />
         </div>
 
-        {/* List */}
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -661,7 +639,7 @@ function UjianContent() {
           <EmptyState
             icon={<ClipboardList className="w-16 h-16" />}
             title="Belum ada ujian"
-            description="Buat ujian pertama kamu sekarang!"
+            description="Buat ujian pertama kamu sekarang"
             action={
               <Button
                 variant="primary"
@@ -688,7 +666,6 @@ function UjianContent() {
                     transition={{ delay: i * 0.06 }}
                     className="bg-[#1A1A2E] border border-[#2A2A4A] rounded-2xl p-5 hover:border-[#3A3A5A] transition-all"
                   >
-                    {/* Header */}
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
@@ -717,8 +694,6 @@ function UjianContent() {
                           </p>
                         )}
                       </div>
-
-                      {/* Token badge jika aktif */}
                       {isAktif && ujian.token && (
                         <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-xl px-3 py-1.5">
                           <Key className="w-3.5 h-3.5 text-green-400" />
@@ -730,7 +705,6 @@ function UjianContent() {
                       )}
                     </div>
 
-                    {/* Info grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                       {[
                         {
@@ -773,17 +747,14 @@ function UjianContent() {
                       ))}
                     </div>
 
-                    {/* Actions */}
                     <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-[#2A2A4A]">
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() =>
-                          router.push(`/guru/ujian/${ujian._id}`)
-                        }
+                        onClick={() => router.push(`/guru/ujian/${ujian._id}`)}
                         icon={<Eye className="w-3.5 h-3.5" />}
                       >
-                        Detail & Hasil
+                        Detail
                       </Button>
 
                       {isDraft && (
@@ -824,7 +795,7 @@ function UjianContent() {
                             onClick={() => handleTutupUjian(ujian._id)}
                             icon={<Square className="w-3.5 h-3.5" />}
                           >
-                            Tutup Ujian
+                            Tutup
                           </Button>
                         </>
                       )}
@@ -849,7 +820,6 @@ function UjianContent() {
         )}
       </div>
 
-      {/* Modals */}
       <BuatUjianModal
         open={showBuatModal}
         onClose={() => setShowBuatModal(false)}
@@ -861,12 +831,11 @@ function UjianContent() {
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
         title="Hapus Ujian"
-        message="Hapus ujian ini beserta semua data sesi dan hasil ujian? Tindakan tidak bisa dibatalkan."
+        message="Hapus ujian ini beserta semua data? Tindakan tidak bisa dibatalkan."
         confirmText="Ya, Hapus"
         loading={deleteLoading}
       />
 
-      {/* Token Modal */}
       <Modal
         open={tokenModal.open}
         onClose={() => setTokenModal({ open: false, ujianId: "", nama: "" })}
@@ -884,7 +853,7 @@ function UjianContent() {
           <CopyButton text={tokenModal.token || ""} label="Salin Token" />
           <Alert
             type="info"
-            message="Bagikan token ini kepada siswa. Token akan otomatis expired setelah ujian ditutup."
+            message="Bagikan token ini kepada siswa. Token expired setelah ujian ditutup."
           />
         </div>
       </Modal>
@@ -892,7 +861,6 @@ function UjianContent() {
   );
 }
 
-//  Loading Fallback 
 function UjianLoading() {
   return (
     <DashboardLayout title="Manajemen Ujian" subtitle="Memuat...">
@@ -905,7 +873,6 @@ function UjianLoading() {
   );
 }
 
-//  Default Export dengan Suspense 
 export default function UjianPage() {
   return (
     <Suspense fallback={<UjianLoading />}>
