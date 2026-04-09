@@ -614,14 +614,15 @@ export default function AdminPage() {
   };
 
   // ── Column Definitions ──
+  // Fix 1: kolom "no" menggunakan data.indexOf(row) untuk hitung nomor urut
+  // dan semua render return ReactNode (bukan number mentah)
   const siswaColumns = [
     {
       key: "no",
       header: "No",
       width: "50px",
-      // Fix 2: render menerima (row, index) => ReactNode
-      render: (_: any, i: number) => (
-        <span>{(page - 1) * 15 + i + 1}</span>
+      render: (row: any) => (
+        <span>{(page - 1) * 15 + data.indexOf(row) + 1}</span>
       ),
     },
     {
