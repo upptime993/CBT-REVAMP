@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/layout";
 import { SoalEditor } from "@/components/soal-editor";
@@ -8,7 +8,21 @@ import { Alert } from "@/components/ui";
 import { useAuthStore } from "@/store";
 import toast from "react-hot-toast";
 
-export default function BuatSoalPage() {
+// ── Loading Fallback ──
+function BuatSoalLoading() {
+  return (
+    <DashboardLayout title="Memuat...">
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="skeleton h-20 rounded-2xl" />
+        ))}
+      </div>
+    </DashboardLayout>
+  );
+}
+
+// ── Komponen utama yang pakai useSearchParams ──
+function BuatSoalContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
@@ -40,7 +54,7 @@ export default function BuatSoalPage() {
       }
     };
     fetchSoal();
-  }, [editId, token]);
+  }, [editId, token, router]);
 
   const handleSubmit = async (data: any) => {
     setLoading(true);
@@ -116,5 +130,14 @@ export default function BuatSoalPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+// ── Default Export dengan Suspense ──
+export default function BuatSoalPage() {
+  return (
+    <Suspense fallback={<BuatSoalLoading />}>
+      <BuatSoalContent />
+    </Suspense>
   );
 }
