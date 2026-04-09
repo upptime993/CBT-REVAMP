@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const auth = requireAuth(req, ["superadmin", "admin", "guru"]);
+    const auth = requireAuth(req, ["superadmin", "admin", "guru", "siswa"]);
     if ("status" in auth) return auth;
 
     const body = await req.json();
