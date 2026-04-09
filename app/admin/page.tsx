@@ -9,7 +9,6 @@ import {
   Users,
   GraduationCap,
   School,
-  Search,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout";
 import {
@@ -22,11 +21,9 @@ import {
   Tabs,
   SearchBar,
   Pagination,
-  EmptyState,
 } from "@/components/ui";
 import { Table } from "@/components/shared";
 import { useAuthStore } from "@/store";
-import { formatTanggal } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 
@@ -47,11 +44,11 @@ function SiswaModal({
   const { token } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    nama: editData?.nama || "",
-    nisn: editData?.nisn || "",
-    kelasId: editData?.kelasId || "",
-    kelas: editData?.kelas || "",
-    jenisKelamin: editData?.jenisKelamin || "L",
+    nama: "",
+    nisn: "",
+    kelasId: "",
+    kelas: "",
+    jenisKelamin: "L",
   });
 
   useEffect(() => {
@@ -476,22 +473,14 @@ export default function AdminPage() {
       const res = await fetch("/api/manajemen?tipe=kelas&limit=100", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      setKelasList(data.data?.list || []);
+      const result = await res.json();
+      setKelasList(result.data?.list || []);
     } catch {}
   }, [token]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    fetchKelas();
-  }, [fetchKelas]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [activeTab, search]);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchKelas(); }, [fetchKelas]);
+  useEffect(() => { setPage(1); }, [activeTab, search]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -504,12 +493,12 @@ export default function AdminPage() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      const data = await res.json();
-      if (data.success) {
+      const result = await res.json();
+      if (result.success) {
         toast.success("Data berhasil dihapus");
         fetchData();
       } else {
-        toast.error(data.message);
+        toast.error(result.message);
       }
     } catch {
       toast.error("Gagal menghapus data");
@@ -519,79 +508,153 @@ export default function AdminPage() {
     }
   };
 
+  // ── Columns tanpa index parameter ──
   const siswaColumns = [
-    { key: "no", header: "No", width: "50px", render: (_: any, i: number) => (page - 1) * 15 + i + 1 },
-    { key: "nama", header: "Nama", render: (row: any) => (
-      <div>
-        <p className="font-medium text-white">{row.nama}</p>
-        <p className="text-xs text-[#6B7280]">{row.nisn}</p>
-      </div>
-    )},
-    { key: "kelas", header: "Kelas" },
-    { key: "jenisKelamin", header: "JK", render: (row: any) => (
-      <Badge variant={row.jenisKelamin === "L" ? "info" : "purple"}>
-        {row.jenisKelamin === "L" ? "L" : "P"}
-      </Badge>
-    )},
-    { key: "aksi", header: "Aksi", align: "right" as const, render: (row: any) => (
-      <div className="flex items-center justify-end gap-1">
-        <button onClick={() => { setEditData(row); setShowSiswaModal(true); }}
-          className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors">
-          <Edit className="w-4 h-4" />
-        </button>
-        <button onClick={() => setDeleteId(row._id)}
-          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors">
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    )},
+    {
+      key: "no",
+      header: "No",
+      width: "50px",
+      render: (row: any) => {
+        const idx = data.indexOf(row);
+        return <span>{(page - 1) * 15 + idx + 1}</span>;
+      },
+    },
+    {
+      key: "nama",
+      header: "Nama",
+      render: (row: any) => (
+        <div>
+          <p className="font-medium text-white">{row.nama}</p>
+          <p className="text-xs text-[#6B7280]">{row.nisn}</p>
+        </div>
+      ),
+    },
+    {
+      key: "kelas",
+      header: "Kelas",
+      render: (row: any) => row.kelas || "-",
+    },
+    {
+      key: "jenisKelamin",
+      header: "JK",
+      render: (row: any) => (
+        <Badge variant={row.jenisKelamin === "L" ? "info" : "purple"}>
+          {row.jenisKelamin === "L" ? "L" : "P"}
+        </Badge>
+      ),
+    },
+    {
+      key: "aksi",
+      header: "Aksi",
+      align: "right" as const,
+      render: (row: any) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => { setEditData(row); setShowSiswaModal(true); }}
+            className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setDeleteId(row._id)}
+            className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   const guruColumns = [
-    { key: "nama", header: "Nama", render: (row: any) => (
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 gradient-purple rounded-full flex items-center justify-center text-xs font-bold">
-          {row.nama?.charAt(0)}
+    {
+      key: "nama",
+      header: "Nama",
+      render: (row: any) => (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 gradient-purple rounded-full flex items-center justify-center text-xs font-bold">
+            {row.nama?.charAt(0)}
+          </div>
+          <div>
+            <p className="font-medium text-white">{row.nama}</p>
+            <p className="text-xs text-[#6B7280]">@{row.username}</p>
+          </div>
         </div>
-        <div>
-          <p className="font-medium text-white">{row.nama}</p>
-          <p className="text-xs text-[#6B7280]">@{row.username}</p>
+      ),
+    },
+    {
+      key: "mapel",
+      header: "Mapel",
+      render: (row: any) => row.mapel || "-",
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (row: any) => (
+        <Badge variant={row.role === "admin" ? "purple" : "default"}>
+          {row.role}
+        </Badge>
+      ),
+    },
+    {
+      key: "aksi",
+      header: "Aksi",
+      align: "right" as const,
+      render: (row: any) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => { setEditData(row); setShowGuruModal(true); }}
+            className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setDeleteId(row._id)}
+            className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
-      </div>
-    )},
-    { key: "mapel", header: "Mapel", render: (row: any) => row.mapel || "-" },
-    { key: "role", header: "Role", render: (row: any) => (
-      <Badge variant={row.role === "admin" ? "purple" : "default"}>
-        {row.role}
-      </Badge>
-    )},
-    { key: "aksi", header: "Aksi", align: "right" as const, render: (row: any) => (
-      <div className="flex items-center justify-end gap-1">
-        <button onClick={() => { setEditData(row); setShowGuruModal(true); }}
-          className="p-1.5 rounded-lg hover:bg-purple-500/10 text-[#6B7280] hover:text-purple-400 transition-colors">
-          <Edit className="w-4 h-4" />
-        </button>
-        <button onClick={() => setDeleteId(row._id)}
-          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors">
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    )},
+      ),
+    },
   ];
 
   const kelasColumns = [
-    { key: "nama", header: "Nama Kelas", render: (row: any) => (
-      <p className="font-medium text-white">{row.nama}</p>
-    )},
-    { key: "tingkat", header: "Tingkat" },
-    { key: "tahunAjaran", header: "Tahun Ajaran" },
-    { key: "waliKelas", header: "Wali Kelas", render: (row: any) => row.waliKelas || "-" },
-    { key: "aksi", header: "Aksi", align: "right" as const, render: (row: any) => (
-      <button onClick={() => setDeleteId(row._id)}
-        className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors">
-        <Trash2 className="w-4 h-4" />
-      </button>
-    )},
+    {
+      key: "nama",
+      header: "Nama Kelas",
+      render: (row: any) => (
+        <p className="font-medium text-white">{row.nama}</p>
+      ),
+    },
+    {
+      key: "tingkat",
+      header: "Tingkat",
+      render: (row: any) => row.tingkat || "-",
+    },
+    {
+      key: "tahunAjaran",
+      header: "Tahun Ajaran",
+      render: (row: any) => row.tahunAjaran || "-",
+    },
+    {
+      key: "waliKelas",
+      header: "Wali Kelas",
+      render: (row: any) => row.waliKelas || "-",
+    },
+    {
+      key: "aksi",
+      header: "Aksi",
+      align: "right" as const,
+      render: (row: any) => (
+        <button
+          onClick={() => setDeleteId(row._id)}
+          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#6B7280] hover:text-red-400 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      ),
+    },
   ];
 
   return (
@@ -615,7 +678,11 @@ export default function AdminPage() {
       }
     >
       <div className="space-y-5">
-        <Tabs tabs={tabs} active={activeTab} onChange={(id) => { setActiveTab(id); setSearch(""); }} />
+        <Tabs
+          tabs={tabs}
+          active={activeTab}
+          onChange={(id) => { setActiveTab(id); setSearch(""); }}
+        />
 
         <SearchBar
           value={search}
@@ -644,7 +711,6 @@ export default function AdminPage() {
         <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
 
-      {/* Modals */}
       <SiswaModal
         open={showSiswaModal}
         onClose={() => { setShowSiswaModal(false); setEditData(null); }}
