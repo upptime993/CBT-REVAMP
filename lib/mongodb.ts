@@ -50,13 +50,13 @@ export async function connectDB() {
 // ============================================
 
 // User (Admin & Guru)
+// Fix: hapus _id: string karena Document sudah punya _id: ObjectId
 export interface IUser extends Document {
-  _id: string;
   nama: string;
   username: string;
   password: string;
   role: "superadmin" | "admin" | "guru";
-  mapel?: string; // khusus guru
+  mapel?: string;
   aktif: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -64,7 +64,6 @@ export interface IUser extends Document {
 
 // Siswa
 export interface ISiswa extends Document {
-  _id: string;
   nama: string;
   nisn: string;
   kelas: string;
@@ -77,10 +76,9 @@ export interface ISiswa extends Document {
 
 // Kelas
 export interface IKelas extends Document {
-  _id: string;
-  nama: string; // contoh: "X IPA 1"
-  tingkat: string; // "X", "XI", "XII"
-  tahunAjaran: string; // "2024/2025"
+  nama: string;
+  tingkat: string;
+  tahunAjaran: string;
   waliKelas?: string;
   aktif: boolean;
 }
@@ -94,7 +92,7 @@ export type TipeSoal =
   | "esai";
 
 export interface IOpsiPG {
-  id: string; // "A", "B", "C", "D", "E"
+  id: string;
   teks: string;
   gambar?: string;
 }
@@ -106,7 +104,6 @@ export interface IPasanganJodoh {
 }
 
 export interface ISoal extends Document {
-  _id: string;
   pertanyaan: string;
   gambar?: string;
   tipe: TipeSoal;
@@ -116,9 +113,9 @@ export interface ISoal extends Document {
   poin: number;
   // PG & PG Kompleks
   opsi?: IOpsiPG[];
-  kunciJawaban?: string | string[]; // string untuk PG, array untuk PGK
+  kunciJawaban?: string | string[];
   // Isian singkat
-  jawabanDiterima?: string[]; // multiple accepted answers
+  jawabanDiterima?: string[];
   // Menjodohkan
   pasangan?: IPasanganJodoh[];
   // Esai
@@ -133,14 +130,13 @@ export interface ISoal extends Document {
 
 // Ujian
 export interface IUjian extends Document {
-  _id: string;
   nama: string;
   mapel: string;
   kelasTarget: mongoose.Types.ObjectId[];
   kelasNama: string[];
   deskripsi?: string;
   soalIds: mongoose.Types.ObjectId[];
-  durasi: number; // menit
+  durasi: number;
   tanggalMulai: Date;
   tanggalSelesai: Date;
   token?: string;
@@ -178,7 +174,6 @@ export interface IJawaban {
 }
 
 export interface IUjianSesi extends Document {
-  _id: string;
   ujianId: mongoose.Types.ObjectId;
   siswaId: mongoose.Types.ObjectId;
   siswaNama: string;
@@ -186,7 +181,7 @@ export interface IUjianSesi extends Document {
   status: StatusSesi;
   jawaban: IJawaban[];
   totalSkor?: number;
-  nilaiAkhir?: number; // 0-100
+  nilaiAkhir?: number;
   jumlahPelanggaran: number;
   logPelanggaran: {
     tipe: string;
@@ -197,14 +192,13 @@ export interface IUjianSesi extends Document {
   waktuSelesai?: Date;
   diizinkanKembali: boolean;
   diizinkanOleh?: string;
-  urutanSoal: string[]; // soalIds yang sudah diacak
+  urutanSoal: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 // Hasil Ujian (summary)
 export interface IHasilUjian extends Document {
-  _id: string;
   ujianId: mongoose.Types.ObjectId;
   ujianNama: string;
   mapel: string;
@@ -223,7 +217,7 @@ export interface IHasilUjian extends Document {
     total: number;
     skor: number;
   }[];
-  waktuPengerjaan: number; // menit
+  waktuPengerjaan: number;
   tanggalUjian: Date;
   createdAt: Date;
 }
@@ -236,9 +230,19 @@ export interface IHasilUjian extends Document {
 const UserSchema = new Schema<IUser>(
   {
     nama: { type: String, required: true, trim: true },
-    username: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
     password: { type: String, required: true, minlength: 6 },
-    role: { type: String, enum: ["superadmin", "admin", "guru"], default: "guru" },
+    role: {
+      type: String,
+      enum: ["superadmin", "admin", "guru"],
+      default: "guru",
+    },
     mapel: { type: String, trim: true },
     aktif: { type: Boolean, default: true },
   },
@@ -277,7 +281,13 @@ const SoalSchema = new Schema<ISoal>(
     gambar: { type: String },
     tipe: {
       type: String,
-      enum: ["pilihan_ganda", "pg_kompleks", "isian_singkat", "menjodohkan", "esai"],
+      enum: [
+        "pilihan_ganda",
+        "pg_kompleks",
+        "isian_singkat",
+        "menjodohkan",
+        "esai",
+      ],
       required: true,
     },
     mapel: { type: String, required: true },
@@ -354,7 +364,13 @@ const UjianSesiSchema = new Schema<IUjianSesi>(
     siswaNisn: { type: String, required: true },
     status: {
       type: String,
-      enum: ["belum_mulai", "berlangsung", "selesai", "dikeluarkan", "ditangguhkan"],
+      enum: [
+        "belum_mulai",
+        "berlangsung",
+        "selesai",
+        "dikeluarkan",
+        "ditangguhkan",
+      ],
       default: "belum_mulai",
     },
     jawaban: [
@@ -398,7 +414,11 @@ const HasilUjianSchema = new Schema<IHasilUjian>(
     siswaNama: { type: String, required: true },
     siswaNisn: { type: String, required: true },
     kelasNama: { type: String, required: true },
-    sesiId: { type: Schema.Types.ObjectId, ref: "UjianSesi", required: true },
+    sesiId: {
+      type: Schema.Types.ObjectId,
+      ref: "UjianSesi",
+      required: true,
+    },
     nilaiAkhir: { type: Number, required: true },
     totalSkor: { type: Number, required: true },
     skorMaksimal: { type: Number, required: true },
